@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes,} from 'react-router-dom';
 import GetStarted from './pages/getstrated';
 import Home from './pages/home';
 import Result from './pages/result';
-
 function App() {
   return (
    

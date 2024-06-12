@@ -1,83 +1,100 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import logo from '../images/logo.png'
-import '../css/getstarted.css'
-import '../css/home.css'
+import React, { useState } from 'react';
+import logo from '../images/logo.png';
+import '../css/getstarted.css';
+import '../css/home.css';
+import LoadingPage from './loadingpage'; 
 
-function home() {
+function Home() {
+ 
+  const [formData, setFormData] = useState({
+    ph: '',
+    Hardness: '',
+    Solids: '',
+    Chloramines: '',
+    Sulfate: '',
+    Conductivity: '',
+    Organic_carbon: '',
+    Trihalomethanes: '',
+    Turbidity: ''
+  });
+  const [loading, setLoading] = useState(false); 
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // Function to handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true); 
+    fetch('/api/predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data);
+      setLoading(false); 
+      window.location.href = `/result?prediction=${data.prediction}`;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      setLoading(false); 
+    });
+  };
+
   return (
     <div>
       <div className='home-header'>
         <div>
-       <img src={logo} alt="" />
-       </div>
-       <Link to='/result'><button className='predict'>Predict water potability
-            </button></Link>
-     </div>
-
-     <div className='page-content'>
-       <div className='header-text'>
-        <p>
-        To analyze your water potability, enter the required parameters as precise integers or decimals in the provided fields. <br />
-         Our model will evaluate the inputs to determine if your water is safe for drinking. Double-check your entries before <br />
-         submitting for accurate results.
-        </p>
-
-        <div className='input-field'>
-            <div className='set'>
-            <div className='input-label'>
-            <label>CHLORAMINES</label>
-            <input type='number' placeholder='Input water chloramines level'/>
-            </div>
-
-          
-
-            <div className='input-label'>
-            <label>ORGANIC_CARBON</label>
-            <input type='number' placeholder='Input water org_car level'/>
-            </div>
-
-            <div className='input-label'>
-            <label>SOLIDS</label>
-            <input type='number' placeholder='Input water solids level'/>
-            </div>
-
-            <div className='input-label'>
-            <label>SULFATE</label>
-            <input type='number' placeholder='Input water sulfate level'/>
-            </div>
-
-            <div className='input-label'>
-            <label>TRIHALOMETHANES</label>
-            <input type='number' placeholder='Input water trihalomethanes level'/>
-            </div>
-
-            <div className='input-label'>
-            <label>HARDNESS</label>
-            <input type='number' placeholder='Input water hardness level'/>
-            </div>
-
-            <div className='input-label'>
-            <label>CONDUCTIVITY</label>
-            <input type='number' placeholder='Input water conductivity level'/>
-            </div>
-
-            <div className='input-label'>
-            <label>TURBIDITY</label>
-            <input type='number' placeholder='Input water turbidity level'/>
-            </div>
-
-            <div className='input-label'>
-            <label>PH</label>
-            <input type='number' placeholder='Input water ph level'/>
-            </div>
-            </div>
+          <img src={logo} alt="" />
         </div>
-       </div>
-     </div>
+        <button className='predict' onClick={handleSubmit}>Predict water potability</button>
+      </div>
 
+      <div className='page-content'>
+        {loading ? ( 
+          <LoadingPage />
+        ) : ( 
+          <div className='header-text'>
+            <p>
+              To analyze your water potability, enter the required parameters as precise integers or decimals in the provided fields. <br />
+              Our model will evaluate the inputs to determine if your water is safe for drinking. Double-check your entries before <br />
+              submitting for accurate results.
+            </p>
+
+            <div className='input-field'>
+              <div className='set'>
+                {Object.entries(formData).map(([key, value]) => (
+                  <div className='input-label' key={key}>
+                    <label>{key}</label>
+                    <input
+                      type='number'
+                      name={key}
+                      value={value}
+                      placeholder={`Input water ${key.toLowerCase()} level`}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }
 
-export default home
+export default Home;
+
+
